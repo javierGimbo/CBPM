@@ -1,0 +1,84 @@
+/* Fondo general azul */
+body {
+  background-color: #223361;
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* Contenedor blanco */
+.container-white {
+  background-color: #ffffff;
+  color: #000;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 1200px;  /* ancho máximo del bloque */
+  margin: auto;       /* centrado */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* MAIN */
+.main-content {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+.news-section { flex: 3; }
+.sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.custom-navbar{
+    background-color:#223361;
+    font-family:fantasy;
+}
+.custom-navbar .nav-link{
+    color: #ffffff;
+}
+
+/* HEADER */
+header img.logo {
+  height: 100%;
+  object-fit: contain;
+}
+
+/* CARRUSEL */
+.carousel-inner img {
+  height: 400px;
+  object-fit: cover;
+}
+
+/* FOOTER */
+footer {
+  background-color: #f8f9fa;
+  padding: 20px;
+  margin-top: 40px;
+  text-align: center;
+  color: #000;
+  border-radius: 10px;
+}
+
+
+.equipo-img {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      margin-bottom: 30px;
+      border-radius: 10px;
+    }
+    .jugador-card {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .jugador-card img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .jugador-nombre {
+      margin-top: 5px;
+      font-weight: bold;
+    }
+
+   

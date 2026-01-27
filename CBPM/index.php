@@ -2,7 +2,7 @@
 <html lang="es">
 
 <head>
-  <!-- /*http://localhost/CBPM/index.php
+  <!-- /*http://localhost/CBPM/CBPM/index.php
    Ctrl + f5 por si se ralla  -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -86,7 +86,7 @@ if ($esExterno) {
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Nuestro Club</a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="historia.php">Historia</a></li>
+                <li><a class="dropdown-item" href="historia.php">Historias</a></li>
                 <li><a class="dropdown-item" href="palmares.php">Palmares</a></li>
                 <li><a class="dropdown-item" href="junta.php">Junta Directiva</a></li>
                 <li><a class="dropdown-item" href="entrenadores.php">Entrenadores</a></li>

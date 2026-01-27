@@ -87,7 +87,6 @@ if ($esExterno) {
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Nuestro Club</a>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="historia.php">Historia</a></li>
-                 <li><a class="dropdown-item" href="historia.php">prueba de github</a></li>
                 <li><a class="dropdown-item" href="palmares.php">Palmares</a></li>
                 <li><a class="dropdown-item" href="junta.php">Junta Directiva</a></li>
                 <li><a class="dropdown-item" href="entrenadores.php">Entrenadores</a></li>

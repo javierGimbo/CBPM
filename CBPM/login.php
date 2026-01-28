@@ -2,23 +2,24 @@
 session_start();
 include 'conexion.php';
 
-if(isset($_POST['usuario']) && isset($_POST['contraseña'])){
-    $usuario = $_POST['usuario'];
-    $contraseña = $_POST['contraseña'];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $sql = "SELECT * FROM usuarios WHERE nombre=?";
+    $usuario = $_POST['usuario'];
+    $password = $_POST['password'];
+
+    $sql = "SELECT * FROM usuarios WHERE nombre = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $usuario);
     $stmt->execute();
     $resultado = $stmt->get_result();
 
-    if($resultado->num_rows > 0){
+    if ($resultado->num_rows === 1) {
         $fila = $resultado->fetch_assoc();
-        if(password_verify($contraseña, $fila['contraseña'])){
+
+        if (password_verify($password, $fila['password'])) {
             $_SESSION['usuario'] = $fila['nombre'];
             $_SESSION['rol'] = $fila['rol'];
 
-            // Redirigir a la página de prueba
             header("Location: admin_web.php");
             exit();
         } else {
@@ -33,16 +34,29 @@ if(isset($_POST['usuario']) && isset($_POST['contraseña'])){
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Login CBPM</title>
+    <meta charset="UTF-8">
+    <title>Login</title>
 </head>
 <body>
-<h2>Login CBPM</h2>
-<form method="post" action="">
-    Usuario: <input type="text" name="usuario" required><br>
-    Contraseña: <input type="password" name="contraseña" required><br>
-    <button type="submit">Entrar</button>
-</form>
-<?php if(isset($error)) echo "<p style='color:red;'>$error</p>"; ?>
+    <h2>Login</h2>
+
+    <form method="POST">
+        Usuario:<br>
+        <input type="text" name="usuario" required><br><br>
+
+        Contraseña:<br>
+        <input type="password" name="password" required><br><br>
+
+        <button type="submit">Entrar</button>
+    </form>
+
+    <br>
+    <a href="crear_usuario.php">Crear usuario</a>
+
+    <?php
+    if (isset($error)) {
+        echo "<p style='color:red;'>$error</p>";
+    }
+    ?>
 </body>
 </html>

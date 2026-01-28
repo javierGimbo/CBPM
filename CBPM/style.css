@@ -2,7 +2,7 @@
 body {
   background-color: #223361;
   margin: 0;
-  padding: 20px;
+  padding: 0;
   font-family: Arial, sans-serif;
 }
 
@@ -12,10 +12,12 @@ body {
   color: #000;
   padding: 30px;
   border-radius: 10px;
-  max-width: 1200px;  /* ancho máximo del bloque */
-  margin: auto;       /* centrado */
+  max-width: 1200px;
+  margin: 30px auto; /* ⬅️ así se ve azul arriba y abajo */
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
+
+
 
 /* MAIN */
 .main-content {
@@ -81,4 +83,15 @@ footer {
       font-weight: bold;
     }
 
-   
+   /* Barra admin sin padding superior */
+.admin-bar {
+  margin-top: -30px;          /* anula el padding superior del contenedor */
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Contenido normal con padding */
+.content-padding {
+  padding-top: 20px;
+}

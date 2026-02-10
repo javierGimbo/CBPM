@@ -1,0 +1,1 @@
+<!-- /*http://localhost/CBPM/CBPM/index.php Ctrl + f5 por si se ralla -->

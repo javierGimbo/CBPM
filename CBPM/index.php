@@ -7,19 +7,16 @@
 
   <link rel="icon" type="image/png" href="media/Logo-png-1.png">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-
-  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <link rel="stylesheet" href="style.css">
 </head>
 
 <?php
-$archivo = "visitas.txt";
+include 'conexion.php';
 
-if (!file_exists($archivo)) {
-  file_put_contents($archivo, "0");
-}
+/* CONTADOR DE VISITAS */
+$archivo = "visitas.txt";
+if (!file_exists($archivo)) file_put_contents($archivo, "0");
 
 $esExterno = true;
 if (isset($_SERVER['HTTP_REFERER'])) {
@@ -33,13 +30,20 @@ if ($esExterno) {
   $visitas++;
   file_put_contents($archivo, $visitas);
 }
+
+/* helper: recortar texto */
+function excerpt($text, $max = 180) {
+  $text = trim(strip_tags($text));
+  if (mb_strlen($text) <= $max) return $text;
+  return mb_substr($text, 0, $max) . "…";
+}
 ?>
 
 <body>
 
   <div class="container-white">
 
-    <!-- BARRA ADMIN (sin padding superior) -->
+    <!-- BARRA ADMIN -->
     <div class="d-flex justify-content-end w-100 bg-white px-2 py-1 admin-bar">
       <a href="login.php"
          class="btn btn-outline-dark"
@@ -48,14 +52,12 @@ if ($esExterno) {
       </a>
     </div>
 
-    <!-- CONTENIDO CON PADDING NORMAL -->
     <div class="content-padding">
 
       <!-- HEADER -->
       <header class="position-relative py-2">
         <img src="media/sINCE-2010-1-1024x231.png" class="w-100" alt="Imagen del Club">
-        <img src="media/Logo-png-1.png"
-             class="position-absolute logo"
+        <img src="media/Logo-png-1.png" class="position-absolute logo"
              style="bottom:20px; left:20px; height:100px;"
              alt="Logo del Club">
       </header>
@@ -66,18 +68,21 @@ if ($esExterno) {
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav">
             <span class="navbar-toggler-icon"></span>
           </button>
+
           <div class="collapse navbar-collapse justify-content-center" id="menuNav">
             <ul class="navbar-nav">
-              <li class="nav-item"><a class="nav-link" href="#">Inicio</a></li>
+              <li class="nav-item"><a class="nav-link active" href="index.php">Inicio</a></li>
 
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Equipos</a>
                 <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="alevin.php">Alevín</a></li>
-                  <li><a class="dropdown-item" href="infantil.php">Infantil</a></li>
-                  <li><a class="dropdown-item" href="cadete.php">Cadete</a></li>
-                  <li><a class="dropdown-item" href="juvenil.php">Juvenil</a></li>
-                  <li><a class="dropdown-item" href="senior.php">Senior</a></li>
+                  <?php
+                  $equiposNav = $conn->query("SELECT slug, nombre FROM equipos ORDER BY nombre");
+                  while ($e = $equiposNav->fetch_assoc()) {
+                    echo '<li><a class="dropdown-item" href="equipo.php?equipo=' . urlencode($e['slug']) . '">'
+                      . htmlspecialchars($e['nombre']) . '</a></li>';
+                  }
+                  ?>
                 </ul>
               </li>
 
@@ -114,7 +119,6 @@ if ($esExterno) {
             <img src="media/logo-DV-baloncsto_070225-1.png" class="d-block w-100" alt="Del Valle">
           </div>
         </div>
-
         <button class="carousel-control-prev" type="button" data-bs-target="#carouselClub" data-bs-slide="prev">
           <span class="carousel-control-prev-icon"></span>
         </button>
@@ -123,39 +127,61 @@ if ($esExterno) {
         </button>
       </div>
 
-      <!-- CONTENIDO PRINCIPAL -->
-      <div class="container my-4">
-        <div class="row">
+    <!-- CONTENIDO PRINCIPAL -->
+<div class="container my-4">
+  <div class="row g-4 align-items-start">
 
-          <!-- NOTICIAS -->
-          <div class="col-lg-8">
-            <?php
-            include 'conexion.php';
-            $result = $conn->query("SELECT * FROM noticias ORDER BY fecha DESC");
+    <!-- NOTICIAS (FORMATO PORTADA + RESUMEN + ENLACE) -->
+    <div class="col-lg-8">
+      <?php
+      $result = $conn->query("SELECT * FROM noticias ORDER BY fecha DESC");
 
-            while ($row = $result->fetch_assoc()) {
-              echo "<div class='card mb-3'>";
-              echo "<div class='card-header'><h3>{$row['titulo']}</h3></div>";
-              echo "<div class='card-body'>";
-              echo "<h5>{$row['encabezado']}</h5>";
-              echo "<p>{$row['cuerpo']}</p>";
-              echo "</div></div>";
-            }
-            ?>
-          </div>
+      while ($row = $result->fetch_assoc()) {
+        $id = (int)$row['id'];
 
-          <!-- SIDEBAR -->
-          <div class="col-lg-4">
-            <div class="card mb-3">
-              <div class="card-header">👀 Visitas</div>
-              <div class="card-body text-center">
-                <h5><?php echo $visitas; ?> visitas</h5>
-              </div>
-            </div>
-          </div>
+        $titulo = htmlspecialchars($row['titulo']);
+        $enc = $row['encabezado'] ?? '';
+        $cuerpo = $row['cuerpo'] ?? '';
 
-        </div>
-      </div>
+        // Resumen: primero encabezado si existe, si no, del cuerpo
+        $resumen = $enc !== '' ? excerpt($enc, 220) : excerpt($cuerpo, 220);
+
+        // Portada (si no hay, puedes poner una default)
+        $portada = (!empty($row['portada'])) ? $row['portada'] : 'media/noticias/default_portada.jpg';
+
+        echo "<div class='card mb-4'>";
+
+        // Imagen clicable
+        echo "<a href='noticia.php?id=$id' style='text-decoration:none; color:inherit;'>";
+        echo "<img src='" . htmlspecialchars($portada) . "'
+                   class='img-fluid w-100 d-block rounded'
+                   style='max-height:360px; object-fit:cover;'
+                   alt='Portada'>";
+        echo "</a>";
+
+        echo "<div class='card-body'>";
+        echo "<h3 class='h5 mb-2'>
+                <a href='noticia.php?id=$id' style='text-decoration:none;'>
+                  $titulo
+                </a>
+              </h3>";
+        echo "<p class='text-muted mb-3'>" . htmlspecialchars($resumen) . "</p>";
+        echo "<a class='btn btn-primary' href='noticia.php?id=$id'>Leer más</a>";
+        echo "</div>";
+
+        echo "</div>";
+      }
+      ?>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+      <?php include 'sidebar.php'; ?>
+    </div>
+
+  </div>
+</div>
+
 
       <!-- FOOTER -->
       <footer>

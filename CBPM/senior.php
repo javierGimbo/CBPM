@@ -25,7 +25,7 @@
     </header>
 
     <!-- NAVBAR -->
-       <nav class="navbar navbar-expand-lg navbar-dark custom-navbar mb-3">
+    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar mb-3">
       <div class="container-fluid justify-content-center">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav">
           <span class="navbar-toggler-icon"></span>
@@ -89,30 +89,63 @@
     <!-- CONTENIDO PRINCIPAL -->
     <div class="container my-4">
       <div class="row">
-        <!-- Columna principal (Galería Alevín) -->
-        <div class="col-lg-8">
-          <!-- Foto grande del equipo -->
-          <img src="imagenes/alevin_grupo.jpg" alt="Equipo Alevín" class="equipo-img mb-4">
 
-          <!-- Mosaico de jugadores -->
+        <!-- Columna principal (Galería Senior) -->
+        <div class="col-lg-8">
+
+          <!-- Foto grande del equipo -->
+          <img src="imagenes/senior_grupo.jpg" alt="Equipo Senior" class="equipo-img mb-4">
+
+          <!-- Mosaico de jugadores (desde BD) -->
           <div class="row row-cols-2 row-cols-md-4 g-3">
-            <div class="col jugador-card">
-              <img src="" alt="Jugador 1">
-              <div class="jugador-nombre">Juan Pérez</div>
-            </div>
-            <div class="col jugador-card">
-              <img src="imagenes/jugador2.jpg" alt="Jugador 2">
-              <div class="jugador-nombre">Luis García</div>
-            </div>
-            <div class="col jugador-card">
-              <img src="imagenes/jugador3.jpg" alt="Jugador 3">
-              <div class="jugador-nombre">Miguel Torres</div>
-            </div>
-            <div class="col jugador-card">
-              <img src="imagenes/jugador4.jpg" alt="Jugador 4">
-              <div class="jugador-nombre">Carlos Ruiz</div>
-            </div>
-            <!-- Más jugadores repetibles -->
+            <?php
+              include 'conexion.php';
+
+              $slug = 'senior';
+
+              $stmt = $conn->prepare("
+                SELECT j.nombre, j.apellidos, j.foto, j.fecha_nacimiento, p.dorsal
+                FROM plantilla p
+                JOIN equipos e ON e.id = p.equipo_id
+                JOIN jugadores j ON j.id = p.jugador_id
+                WHERE e.slug = ?
+                ORDER BY j.apellidos, j.nombre
+              ");
+              $stmt->bind_param("s", $slug);
+              $stmt->execute();
+              $res = $stmt->get_result();
+
+              if ($res->num_rows === 0) {
+                echo "<p class='text-muted'>Aún no hay jugadores añadidos a la plantilla Senior.</p>";
+              } else {
+                while ($j = $res->fetch_assoc()) {
+                  $nombreCompleto = trim(($j['nombre'] ?? '') . " " . ($j['apellidos'] ?? ''));
+                  $foto = !empty($j['foto']) ? $j['foto'] : "media/jugadores/default.png";
+
+                  $dorsalTxt = "";
+                  if ($j['dorsal'] !== null && $j['dorsal'] !== '') {
+                    $dorsalTxt = "#" . (int)$j['dorsal'];
+                  }
+
+                  $fechaBonita = "";
+                  if (!empty($j['fecha_nacimiento'])) {
+                    $fechaBonita = date("d/m/Y", strtotime($j['fecha_nacimiento']));
+                  }
+
+                  echo "<div class='col jugador-card'>";
+                  echo "<img src='" . htmlspecialchars($foto) . "' alt='" . htmlspecialchars($nombreCompleto) . "'>";
+                  echo "<div class='jugador-nombre'>" . htmlspecialchars($nombreCompleto) . "</div>";
+
+                  // Dorsal arriba y fecha abajo
+                  if ($dorsalTxt !== '' || $fechaBonita !== '') {
+                    echo "<div style='font-weight:700; margin-top:4px;'>" . htmlspecialchars($dorsalTxt) . "</div>";
+                    echo "<div style='font-size:0.85rem; color:#555;'>" . htmlspecialchars($fechaBonita) . "</div>";
+                  }
+
+                  echo "</div>";
+                }
+              }
+            ?>
           </div>
         </div>
 
@@ -140,7 +173,7 @@
             <div class="card">
               <div class="card-header">Patrocinador Oficial</div>
               <div class="card-body">
-                <img src="media/delvalle.png">
+                <img src="media/delvalle.png" alt="Patrocinador">
               </div>
             </div>
 
@@ -175,6 +208,7 @@
             </script>
           </div>
         </div>
+
       </div>
     </div>
 

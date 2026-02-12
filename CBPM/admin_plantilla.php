@@ -5,6 +5,11 @@ include 'conexion.php';
 if (!isset($_SESSION['usuario'])) { header("Location: login.php"); exit(); }
 if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'administrador') { die("Acceso denegado."); }
 
+function go($slug, $qs) {
+  header("Location: admin_plantilla.php?equipo=" . urlencode($slug) . $qs);
+  exit();
+}
+
 $slug = $_GET['equipo'] ?? '';
 $stmt = $conn->prepare("SELECT * FROM equipos WHERE slug=?");
 $stmt->bind_param("s", $slug);
@@ -14,20 +19,65 @@ if ($equipoRes->num_rows !== 1) die("Equipo no existe.");
 $equipo = $equipoRes->fetch_assoc();
 $equipo_id = (int)$equipo['id'];
 
-/* Plantilla del equipo */
+/* =========================
+   GUARDAR (POST) aquí mismo
+========================= */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $jugador_id = (int)($_POST['jugador_id'] ?? 0);
+  $rol = $_POST['rol'] ?? 'jugador';
+
+  if (!in_array($rol, ['jugador','entrenador'], true)) {
+    go($slug, "&err=" . urlencode("Rol inválido."));
+  }
+
+  $dorsal = null;
+  if ($rol === 'jugador') {
+    $d = trim($_POST['dorsal'] ?? '');
+    $dorsal = ($d !== '') ? (int)$d : null; // dorsal opcional
+  }
+
+  if ($jugador_id <= 0) {
+    go($slug, "&err=" . urlencode("Persona inválida."));
+  }
+
+  // Evitar duplicados en el mismo equipo
+  $stmt = $conn->prepare("SELECT id FROM plantilla WHERE equipo_id=? AND jugador_id=? LIMIT 1");
+  $stmt->bind_param("ii", $equipo_id, $jugador_id);
+  $stmt->execute();
+  $dup = $stmt->get_result();
+  if ($dup->num_rows > 0) {
+    go($slug, "&err=" . urlencode("Esa persona ya está en la plantilla."));
+  }
+
+  // Insertar
+  $stmt = $conn->prepare("INSERT INTO plantilla (equipo_id, jugador_id, dorsal, rol) VALUES (?,?,?,?)");
+  $stmt->bind_param("iiis", $equipo_id, $jugador_id, $dorsal, $rol);
+
+  if ($stmt->execute()) {
+    go($slug, "&ok=1");
+  } else {
+    go($slug, "&err=" . urlencode("No se pudo añadir a la plantilla."));
+  }
+}
+
+/* =========================
+   Plantilla del equipo
+========================= */
 $stmt = $conn->prepare("
-  SELECT p.id AS plantilla_id, p.dorsal, p.posicion,
+  SELECT p.id AS plantilla_id, p.dorsal, p.rol,
          j.id AS jugador_id, j.nombre, j.apellidos, j.foto
   FROM plantilla p
   JOIN jugadores j ON j.id = p.jugador_id
   WHERE p.equipo_id = ?
-  ORDER BY j.apellidos, j.nombre
+  ORDER BY p.rol DESC, j.apellidos, j.nombre
 ");
 $stmt->bind_param("i", $equipo_id);
 $stmt->execute();
 $plantilla = $stmt->get_result();
 
-/* Jugadores disponibles (no están en esta plantilla) */
+/* =========================
+   Personas disponibles
+========================= */
 $stmt = $conn->prepare("
   SELECT j.id, j.nombre, j.apellidos
   FROM jugadores j
@@ -65,55 +115,76 @@ $disponibles = $stmt->get_result();
   <?php endif; ?>
 
   <div class="row g-4">
-    <!-- Añadir jugador -->
+    <!-- Añadir -->
     <div class="col-lg-4">
       <div class="card">
-        <div class="card-header">Añadir jugador a <?php echo htmlspecialchars($equipo['nombre']); ?></div>
+        <div class="card-header">Añadir a <?php echo htmlspecialchars($equipo['nombre']); ?></div>
         <div class="card-body">
-          <form method="POST" action="plantilla_add.php">
-            <input type="hidden" name="equipo_id" value="<?php echo $equipo_id; ?>">
 
-            <div class="mb-2">
-              <label class="form-label">Jugador</label>
-              <select class="form-select" name="jugador_id" required>
-                <option value="">-- Selecciona --</option>
-                <?php while($j = $disponibles->fetch_assoc()): ?>
-                  <option value="<?php echo (int)$j['id']; ?>">
-                    <?php echo htmlspecialchars($j['apellidos'].", ".$j['nombre']); ?>
-                  </option>
-                <?php endwhile; ?>
-              </select>
-            </div>
+          <?php if ($disponibles->num_rows === 0): ?>
+            <p class="text-muted mb-0">No hay más personas disponibles para añadir.</p>
+          <?php else: ?>
+            <form method="POST">
+              <div class="mb-2">
+                <label class="form-label">Persona</label>
+                <select name="jugador_id" class="form-select" required>
+                  <?php while($j = $disponibles->fetch_assoc()): ?>
+                    <option value="<?php echo (int)$j['id']; ?>">
+                      <?php echo htmlspecialchars($j['apellidos'] . ", " . $j['nombre']); ?>
+                    </option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
 
-            <div class="mb-2">
-              <label class="form-label">Dorsal (opcional)</label>
-              <input type="number" class="form-control" name="dorsal" min="0" max="99">
-            </div>
+              <div class="mb-2">
+                <label class="form-label">Rol en el equipo</label>
+                <select name="rol" id="rol" class="form-select" required>
+                  <option value="jugador">Jugador</option>
+                  <option value="entrenador">Entrenador</option>
+                </select>
+              </div>
 
-            <div class="mb-3">
-              <label class="form-label">Posición (opcional)</label>
-              <input type="text" class="form-control" name="posicion" maxlength="30">
-            </div>
+              <div class="mb-3" id="bloqueDorsal">
+                <label class="form-label">Dorsal (solo jugadores)</label>
+                <input type="number" name="dorsal" class="form-control" min="0">
+              </div>
 
-            <button class="btn btn-primary w-100" type="submit">Añadir</button>
-          </form>
+              <button class="btn btn-primary w-100" type="submit">Añadir a plantilla</button>
+            </form>
+
+            <script>
+              const rol = document.getElementById('rol');
+              const bloqueDorsal = document.getElementById('bloqueDorsal');
+
+              function toggleDorsal(){
+                if(rol.value === 'entrenador'){
+                  bloqueDorsal.style.display = 'none';
+                }else{
+                  bloqueDorsal.style.display = 'block';
+                }
+              }
+              rol.addEventListener('change', toggleDorsal);
+              toggleDorsal();
+            </script>
+          <?php endif; ?>
+
         </div>
       </div>
     </div>
 
-    <!-- Lista plantilla -->
+    <!-- Lista -->
     <div class="col-lg-8">
       <div class="card">
-        <div class="card-header">Jugadores en plantilla</div>
+        <div class="card-header">Plantilla</div>
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-striped align-middle m-0">
               <thead>
                 <tr>
                   <th style="width:70px;">Foto</th>
-                  <th>Jugador</th>
-                  <th style="width:80px;">Dorsal</th>
-                  <th style="width:140px;">Posición</th>
+                  <th>Persona</th>
+                  <th style="width:120px;">Rol</th>
+                  <th style="width:90px;">Dorsal</th>
                   <th style="width:120px;">Acción</th>
                 </tr>
               </thead>
@@ -128,9 +199,13 @@ $disponibles = $stmt->get_result();
                         <span class="text-muted">—</span>
                       <?php endif; ?>
                     </td>
+
                     <td><strong><?php echo htmlspecialchars($r['apellidos'].", ".$r['nombre']); ?></strong></td>
-                    <td><?php echo htmlspecialchars((string)$r['dorsal']); ?></td>
-                    <td><?php echo htmlspecialchars((string)$r['posicion']); ?></td>
+
+                    <td><?php echo htmlspecialchars($r['rol']); ?></td>
+
+                    <td><?php echo $r['rol'] === 'jugador' ? htmlspecialchars((string)$r['dorsal']) : "—"; ?></td>
+
                     <td>
                       <a class="btn btn-sm btn-outline-danger"
                          href="plantilla_remove.php?id=<?php echo (int)$r['plantilla_id']; ?>&equipo=<?php echo htmlspecialchars($slug); ?>"

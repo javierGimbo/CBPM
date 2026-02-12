@@ -30,6 +30,7 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'administrador') {
       <a href="admin_jugadores.php" class="btn btn-outline-primary btn-sm">Gestionar Jugadores</a>
       <a href="admin_equipos.php" class="btn btn-outline-primary btn-sm">Gestionar equipos / plantillas</a>
       <a href="admin_noticias.php" class="btn btn-outline-primary btn-sm">Gestionar Noticias</a>
+      <a href="admin_eventos.php" class="btn btn-outline-primary btn-sm">Gestionar Eventos</a>
       <a href="logout.php" class="btn btn-outline-danger btn-sm">Cerrar sesión</a>
     </div>
   </div>

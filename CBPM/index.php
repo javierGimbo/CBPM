@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,7 +33,8 @@ if ($esExterno) {
 }
 
 /* helper: recortar texto */
-function excerpt($text, $max = 180) {
+function excerpt($text, $max = 180)
+{
   $text = trim(strip_tags($text));
   if (mb_strlen($text) <= $max) return $text;
   return mb_substr($text, 0, $max) . "…";
@@ -46,8 +48,8 @@ function excerpt($text, $max = 180) {
     <!-- BARRA ADMIN -->
     <div class="d-flex justify-content-end w-100 bg-white px-2 py-1 admin-bar">
       <a href="login.php"
-         class="btn btn-outline-dark"
-         style="font-size:0.65rem; padding:1px 6px; border-radius:0; line-height:1;">
+        class="btn btn-outline-dark"
+        style="font-size:0.65rem; padding:1px 6px; border-radius:0; line-height:1;">
         Acceso Admin
       </a>
     </div>
@@ -58,8 +60,8 @@ function excerpt($text, $max = 180) {
       <header class="position-relative py-2">
         <img src="media/sINCE-2010-1-1024x231.png" class="w-100" alt="Imagen del Club">
         <img src="media/Logo-png-1.png" class="position-absolute logo"
-             style="bottom:20px; left:20px; height:100px;"
-             alt="Logo del Club">
+          style="bottom:20px; left:20px; height:100px;"
+          alt="Logo del Club">
       </header>
 
       <!-- NAVBAR -->
@@ -127,11 +129,11 @@ function excerpt($text, $max = 180) {
         </button>
       </div>
 
-    <!-- CONTENIDO PRINCIPAL -->
+      <!-- CONTENIDO PRINCIPAL -->
 <div class="container my-4">
   <div class="row g-4 align-items-start">
 
-    <!-- NOTICIAS (FORMATO PORTADA + RESUMEN + ENLACE) -->
+    <!-- NOTICIAS -->
     <div class="col-lg-8">
       <?php
       $result = $conn->query("SELECT * FROM noticias ORDER BY fecha DESC");
@@ -143,33 +145,31 @@ function excerpt($text, $max = 180) {
         $enc = $row['encabezado'] ?? '';
         $cuerpo = $row['cuerpo'] ?? '';
 
-        // Resumen: primero encabezado si existe, si no, del cuerpo
         $resumen = $enc !== '' ? excerpt($enc, 220) : excerpt($cuerpo, 220);
-
-        // Portada (si no hay, puedes poner una default)
         $portada = (!empty($row['portada'])) ? $row['portada'] : 'media/noticias/default_portada.jpg';
 
         echo "<div class='card mb-4'>";
-
-        // Imagen clicable
-        echo "<a href='noticia.php?id=$id' style='text-decoration:none; color:inherit;'>";
-        echo "<img src='" . htmlspecialchars($portada) . "'
-                   class='img-fluid w-100 d-block rounded'
-                   style='max-height:360px; object-fit:cover;'
-                   alt='Portada'>";
-        echo "</a>";
-
         echo "<div class='card-body'>";
-        echo "<h3 class='h5 mb-2'>
-                <a href='noticia.php?id=$id' style='text-decoration:none;'>
+
+        // Título
+        echo "<h3 class='noticia-titulo h5 mb-2'>
+                <a href='noticia.php?id=$id' style='text-decoration:none; color:inherit;'>
                   $titulo
                 </a>
               </h3>";
-        echo "<p class='text-muted mb-3'>" . htmlspecialchars($resumen) . "</p>";
-        echo "<a class='btn btn-primary' href='noticia.php?id=$id'>Leer más</a>";
-        echo "</div>";
 
-        echo "</div>";
+        // Portada
+        echo "<a href='noticia.php?id=$id' style='text-decoration:none; color:inherit;'>";
+        echo "<img src='" . htmlspecialchars($portada) . "' class='noticia-portada' alt='Portada'>";
+        echo "</a>";
+
+        // Resumen
+        echo "<p class='text-muted mb-3'>" . htmlspecialchars($resumen) . "</p>";
+
+        // Botón
+        echo "<a class='btn btn-primary' href='noticia.php?id=$id'>Leer más</a>";
+
+        echo "</div></div>";
       }
       ?>
     </div>
@@ -183,14 +183,16 @@ function excerpt($text, $max = 180) {
 </div>
 
 
-      <!-- FOOTER -->
-      <footer>
-        <p>&copy; 2025 Club de Baloncesto. Todos los derechos reservados.</p>
-      </footer>
 
-    </div>
+    <!-- FOOTER -->
+    <footer>
+      <p>&copy; 2025 Club de Baloncesto. Todos los derechos reservados.</p>
+    </footer>
+
+  </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

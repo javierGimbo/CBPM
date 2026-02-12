@@ -19,7 +19,7 @@
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Equipos</a>
           <ul class="dropdown-menu">
             <?php
-              $equiposNav = $conn->query("SELECT slug, nombre FROM equipos ORDER BY nombre");
+              $equiposNav = $conn->query("SELECT slug, nombre FROM equipos ORDER BY orden ASC, nombre ASC");
               while ($e = $equiposNav->fetch_assoc()) {
                 echo '<li><a class="dropdown-item" href="equipo.php?equipo=' . urlencode($e['slug']) . '">'
                   . htmlspecialchars($e['nombre']) . '</a></li>';

@@ -116,7 +116,7 @@ $portada = (!empty($row['portada'])) ? $row['portada'] : 'media/noticias/default
         </div>
       </nav>
 
-      <!-- CARRUSEL (se mantiene igual) -->
+      <!-- CARRUSEL -->
       <div id="carouselClub" class="carousel slide mb-4" data-bs-ride="carousel">
         <div class="carousel-inner">
           <div class="carousel-item active">
@@ -138,51 +138,49 @@ $portada = (!empty($row['portada'])) ? $row['portada'] : 'media/noticias/default
       </div>
 
       <!-- CONTENIDO PRINCIPAL -->
-<div class="container my-4">
-  <div class="row">
+      <div class="container my-4">
+        <div class="row g-4 align-items-start">
 
-    <!-- NOTICIA COMPLETA -->
-    <div class="col-lg-8">
+          <!-- NOTICIA COMPLETA -->
+          <div class="col-lg-8">
+            <div class="card mb-4">
+              <div class="card-body">
 
-      <div class="card mb-4">
-        <div class="card-body">
+                <!-- ✅ TÍTULO ARRIBA -->
+                <h1 class="noticia-titulo h3 mb-3">
+                  <?php echo htmlspecialchars($row['titulo']); ?>
+                </h1>
 
-          <!-- ✅ TITULO -->
-          <h1 class="h3 mb-3"><?php echo htmlspecialchars($row['titulo']); ?></h1>
+                <!-- ✅ PORTADA DEBAJO (siempre hay: real o default) -->
+                <img src="<?php echo htmlspecialchars($portada); ?>"
+                     class="noticia-portada"
+                     alt="Portada">
 
-          <!-- ✅ PORTADA -->
-     <?php if (!empty($portada)): ?>
-  <img src="<?php echo htmlspecialchars($portada); ?>"
-       class="img-fluid w-100 rounded mb-3"
-       style="max-height:420px; object-fit:cover;"
-       alt="Portada">
-<?php endif; ?>
+                <!-- ✅ ENCABEZADO DEBAJO -->
+                <?php if (!empty($row['encabezado'])): ?>
+                  <p class="text-muted mb-3">
+                    <?php echo htmlspecialchars($row['encabezado']); ?>
+                  </p>
+                <?php endif; ?>
 
+                <!-- ✅ CUERPO (TinyMCE) -->
+                <div class="noticia-contenido">
+                  <?php echo $row['cuerpo']; ?>
+                </div>
 
-          <!-- ✅ ENCABEZADO -->
-          <?php if (!empty($row['encabezado'])): ?>
-            <p class="text-muted mb-3"><?php echo htmlspecialchars($row['encabezado']); ?></p>
-          <?php endif; ?>
+                <a href="index.php" class="btn btn-outline-secondary mt-3">← Volver</a>
 
-          <!-- ✅ CUERPO (TinyMCE) -->
-          <div class="noticia-cuerpo">
-            <?php echo $row['cuerpo']; ?>
+              </div>
+            </div>
           </div>
 
-          <a href="index.php" class="btn btn-outline-secondary mt-3">← Volver</a>
+          <!-- SIDEBAR -->
+          <div class="col-lg-4">
+            <?php include 'sidebar.php'; ?>
+          </div>
 
         </div>
       </div>
-
-    </div>
-
-    <!-- SIDEBAR -->
-    <div class="col-lg-4">
-      <?php include 'sidebar.php'; ?>
-    </div>
-
-  </div>
-</div>
 
       <!-- FOOTER -->
       <footer>
